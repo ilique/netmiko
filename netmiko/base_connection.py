@@ -1291,8 +1291,8 @@ class BaseConnection(object):
             i += 1
         else:  # nobreak
             raise IOError(
-                "Search pattern never detected in send_command_expect: {}".format(
-                    search_pattern
+                "Search pattern never detected in send_command_expect: {} {}".format(
+                    search_pattern, output
                 )
             )
 
@@ -1403,7 +1403,7 @@ class BaseConnection(object):
             "Failed to enter enable mode. Please ensure you pass "
             "the 'secret' argument to ConnectHandler."
         )
-        if not self.check_enable_mode():
+        if self.secret and not self.check_enable_mode():
             self.write_channel(self.normalize_cmd(cmd))
             try:
                 output += self.read_until_prompt_or_pattern(
