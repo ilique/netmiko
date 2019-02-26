@@ -33,6 +33,7 @@ from netmiko.dell import DellOS10SSH, DellOS10FileTransfer
 from netmiko.dell import DellPowerConnectSSH
 from netmiko.dell import DellPowerConnectTelnet
 from netmiko.dell import DellIsilonSSH
+from netmiko.dlink import DlinkSSH, DlinkTelnet
 from netmiko.eltex import EltexSSH
 from netmiko.enterasys import EnterasysSSH
 from netmiko.extreme import ExtremeErsSSH
@@ -107,6 +108,7 @@ CLASS_MAPPER_BASE = {
     "dell_os10": DellOS10SSH,
     "dell_powerconnect": DellPowerConnectSSH,
     "dell_isilon": DellIsilonSSH,
+    "dlink": DlinkSSH,
     "eltex": EltexSSH,
     "enterasys": EnterasysSSH,
     "extreme": ExtremeExosSSH,
@@ -184,6 +186,7 @@ CLASS_MAPPER["calix_b6_telnet"] = CalixB6Telnet
 CLASS_MAPPER["cisco_ios_telnet"] = CiscoIosTelnet
 CLASS_MAPPER["dell_dnos6_telnet"] = DellDNOS6Telnet
 CLASS_MAPPER["dell_powerconnect_telnet"] = DellPowerConnectTelnet
+CLASS_MAPPER["dlink_telnet"] = DlinkTelnet
 CLASS_MAPPER["extreme_telnet"] = ExtremeExosTelnet
 CLASS_MAPPER["extreme_exos_telnet"] = ExtremeExosTelnet
 CLASS_MAPPER["extreme_netiron_telnet"] = ExtremeNetironTelnet
