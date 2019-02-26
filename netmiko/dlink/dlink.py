@@ -18,7 +18,8 @@ class DlinkBase(BaseConnection):
         pass
 
     def session_preparation(self):
-        pass
+        if not self.check_enable_mode():
+            self.enable()
 
     def set_base_prompt(self, pri_prompt_terminator='#',
                         alt_prompt_terminator='#', delay_factor=1):
