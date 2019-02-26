@@ -2,11 +2,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 import time
 import re
-from netmiko.cisco_base_connection import CiscoSSHConnection
+from netmiko.base_connection import BaseConnection
 from netmiko import log
 
 
-class HuaweiSSH(CiscoSSHConnection):
+class HuaweiBase(BaseConnection):
     def session_preparation(self):
         """Prepare the session after the connection has been established."""
         self._test_channel_read()
@@ -16,19 +16,19 @@ class HuaweiSSH(CiscoSSHConnection):
         time.sleep(0.3 * self.global_delay_factor)
         self.clear_buffer()
 
-    def config_mode(self, config_command="system-view"):
+    def config_mode(self, config_command="system-view", pattern=""):
         """Enter configuration mode."""
-        return super(HuaweiSSH, self).config_mode(config_command=config_command)
+        return super(BaseConnection, self).config_mode(config_command, pattern)
 
     def exit_config_mode(self, exit_config="return", pattern=r">"):
         """Exit configuration mode."""
-        return super(HuaweiSSH, self).exit_config_mode(
+        return super(BaseConnection, self).exit_config_mode(
             exit_config=exit_config, pattern=pattern
         )
 
     def check_config_mode(self, check_string="]"):
         """Checks whether in configuration mode. Returns a boolean."""
-        return super(HuaweiSSH, self).check_config_mode(check_string=check_string)
+        return super(BaseConnection, self).check_config_mode(check_string=check_string)
 
     def check_enable_mode(self, *args, **kwargs):
         """Huawei has no enable mode."""
@@ -85,10 +85,10 @@ class HuaweiSSH(CiscoSSHConnection):
 
     def save_config(self, cmd="save", confirm=False, confirm_response=""):
         """ Save Config for HuaweiSSH"""
-        return super(HuaweiSSH, self).save_config(cmd=cmd, confirm=confirm)
+        return super(BaseConnection, self).save_config(cmd=cmd, confirm=confirm)
 
 
-class HuaweiVrpv8SSH(HuaweiSSH):
+class HuaweiVrpv8SSH(BaseConnection):
     def commit(self, comment="", delay_factor=1):
         """
         Commit the candidate configuration.
@@ -128,3 +128,11 @@ class HuaweiVrpv8SSH(HuaweiSSH):
     def save_config(self, cmd="", confirm=True, confirm_response=""):
         """Not Implemented"""
         raise NotImplementedError
+
+
+class HuaweiSSH(HuaweiBase):
+    pass
+
+
+class HuaweiTelnet(HuaweiBase):
+    pass

@@ -48,7 +48,7 @@ from netmiko.f5 import F5TmshSSH
 from netmiko.f5 import F5LinuxSSH
 from netmiko.fortinet import FortinetSSH
 from netmiko.hp import HPProcurveSSH, HPProcurveTelnet, HPComwareSSH, HPComwareTelnet
-from netmiko.huawei import HuaweiSSH, HuaweiVrpv8SSH
+from netmiko.huawei import HuaweiSSH, HuaweiVrpv8SSH, HuaweiTelnet
 from netmiko.ipinfusion import IpInfusionOcNOSSSH, IpInfusionOcNOSTelnet
 from netmiko.juniper import JuniperSSH, JuniperTelnet
 from netmiko.juniper import JuniperFileTransfer
@@ -190,6 +190,7 @@ CLASS_MAPPER["extreme_netiron_telnet"] = ExtremeNetironTelnet
 CLASS_MAPPER["generic_termserver_telnet"] = TerminalServerTelnet
 CLASS_MAPPER["hp_procurve_telnet"] = HPProcurveTelnet
 CLASS_MAPPER["hp_comware_telnet"] = HPComwareTelnet
+CLASS_MAPPER["huawei_telnet"] = HuaweiTelnet
 CLASS_MAPPER["ipinfusion_ocnos_telnet"] = IpInfusionOcNOSTelnet
 CLASS_MAPPER["juniper_junos_telnet"] = JuniperTelnet
 CLASS_MAPPER["paloalto_panos_telnet"] = PaloAltoPanosTelnet
