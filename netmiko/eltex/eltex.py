@@ -1,10 +1,10 @@
 from __future__ import print_function
 from __future__ import unicode_literals
 import time
-from netmiko.cisco_base_connection import CiscoSSHConnection
+from netmiko.cisco_base_connection import CiscoBaseConnection
 
 
-class EltexSSH(CiscoSSHConnection):
+class EltexBase(CiscoBaseConnection):
     def session_preparation(self):
         """Prepare the session after the connection has been established."""
         self.ansi_escape_codes = True
@@ -19,3 +19,11 @@ class EltexSSH(CiscoSSHConnection):
     def save_config(self, cmd="", confirm=True, confirm_response=""):
         """Not Implemented"""
         raise NotImplementedError
+
+
+class EltexSSH(EltexBase):
+    pass
+
+
+class EltexTelnet(EltexBase):
+    pass

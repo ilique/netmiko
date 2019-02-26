@@ -1,4 +1,4 @@
 from __future__ import unicode_literals
-from netmiko.eltex.eltex_ssh import EltexSSH
+from netmiko.eltex.eltex import EltexSSH, EltexTelnet
 
-__all__ = ["EltexSSH"]
+__all__ = ["EltexSSH", "EltexTelnet"]

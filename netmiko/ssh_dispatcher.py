@@ -34,7 +34,7 @@ from netmiko.dell import DellPowerConnectSSH
 from netmiko.dell import DellPowerConnectTelnet
 from netmiko.dell import DellIsilonSSH
 from netmiko.dlink import DlinkSSH, DlinkTelnet
-from netmiko.eltex import EltexSSH
+from netmiko.eltex import EltexSSH, EltexTelnet
 from netmiko.enterasys import EnterasysSSH
 from netmiko.extreme import ExtremeErsSSH
 from netmiko.extreme import ExtremeExosSSH
@@ -187,6 +187,7 @@ CLASS_MAPPER["cisco_ios_telnet"] = CiscoIosTelnet
 CLASS_MAPPER["dell_dnos6_telnet"] = DellDNOS6Telnet
 CLASS_MAPPER["dell_powerconnect_telnet"] = DellPowerConnectTelnet
 CLASS_MAPPER["dlink_telnet"] = DlinkTelnet
+CLASS_MAPPER["eltex_telnet"] = EltexTelnet
 CLASS_MAPPER["extreme_telnet"] = ExtremeExosTelnet
 CLASS_MAPPER["extreme_exos_telnet"] = ExtremeExosTelnet
 CLASS_MAPPER["extreme_netiron_telnet"] = ExtremeNetironTelnet
