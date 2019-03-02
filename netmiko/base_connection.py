@@ -442,8 +442,8 @@ class BaseConnection(object):
 
     def _read_channel(self):
         """Generic handler that will read all the data from an SSH or telnet channel."""
+        output = ""
         if self.protocol == "ssh":
-            output = ""
             while True:
                 if self.remote_conn.recv_ready():
                     outbuf = self.remote_conn.recv(MAX_BUFFER)
@@ -455,7 +455,6 @@ class BaseConnection(object):
         elif self.protocol == "telnet":
             output = self.remote_conn.read_very_eager().decode("utf-8", "ignore")
         elif self.protocol == "serial":
-            output = ""
             while self.remote_conn.in_waiting > 0:
                 output += self.remote_conn.read(self.remote_conn.in_waiting).decode(
                     "utf-8", "ignore"
@@ -1406,11 +1405,15 @@ class BaseConnection(object):
         if self.secret and not self.check_enable_mode():
             self.write_channel(self.normalize_cmd(cmd))
             try:
+                log.debug("Pattern again: {}".format(pattern))
                 output += self.read_until_prompt_or_pattern(
                     pattern=pattern, re_flags=re_flags
                 )
+                log.debug("Now writing self.secret to channel")
                 self.write_channel(self.normalize_cmd(self.secret))
+                log.debug("Now reading until prompt")
                 output += self.read_until_prompt()
+                log.debug("Done reading until prompt, output is: {}".format(output))
             except NetMikoTimeoutException:
                 raise ValueError(msg)
             if not self.check_enable_mode():
