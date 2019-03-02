@@ -1249,6 +1249,8 @@ class BaseConnection(object):
         else:
             search_pattern = expect_string
 
+        search_pattern += "?"
+
         if normalize:
             command_string = self.normalize_cmd(command_string)
 
