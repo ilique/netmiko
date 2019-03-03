@@ -20,6 +20,31 @@ class EltexBase(CiscoBaseConnection):
         """Not Implemented"""
         raise NotImplementedError
 
+    def send_command(
+        self,
+        command_string,
+        expect_string=None,
+        delay_factor=1,
+        max_loops=500,
+        auto_find_prompt=True,
+        strip_prompt=True,
+        strip_command=True,
+        normalize=True,
+        use_textfsm=False,
+    ):
+        return super().send_command(
+            command_string=command_string,
+            expect_string=".*config.*",
+            delay_factor=delay_factor,
+            max_loops=max_loops,
+            auto_find_prompt=auto_find_prompt,
+            strip_prompt=strip_prompt,
+            strip_command=strip_command,
+            normalize=normalize,
+            use_textfsm=use_textfsm,
+        )
+
+
 
 class EltexSSH(EltexBase):
     pass
