@@ -45,7 +45,6 @@ class EltexBase(CiscoBaseConnection):
         )
 
 
-
 class EltexSSH(EltexBase):
     pass
 
