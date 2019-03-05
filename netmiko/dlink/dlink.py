@@ -12,7 +12,7 @@ class DlinkBase(BaseConnection):
         pass
 
     def config_mode(self, **kwargs):
-        pass
+        return ''
 
     def exit_config_mode(self, **kwargs):
         pass
