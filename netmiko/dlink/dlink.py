@@ -18,19 +18,19 @@ class DlinkBase(BaseConnection):
         pass
 
     def session_preparation(self):
-        if not self.check_enable_mode():
-            self.enable()
+        self.enable()
+        return super().session_preparation()
 
-    def set_base_prompt(self, pri_prompt_terminator='#',
-                        alt_prompt_terminator='#', delay_factor=1):
-        fPrompt = self.find_prompt(delay_factor=delay_factor)
-        prompt = fPrompt.split(':')
-        if not prompt[-1] in ('user#', 'admin#', '3#', '4#', '5#'):
-            raise ValueError("Router prompt not found: {0}".format(repr(prompt)))
-        # Strip off trailing terminator
-        self.base_prompt = prompt[0]
-
-        return self.base_prompt
+    # def set_base_prompt(self, pri_prompt_terminator='#',
+    #                     alt_prompt_terminator='#', delay_factor=1):
+    #     fPrompt = self.find_prompt(delay_factor=delay_factor)
+    #     prompt = fPrompt.split(':')
+    #     if not prompt[-1] in ('user#', 'admin#', '3#', '4#', '5#'):
+    #         raise ValueError("Router prompt not found: {0}".format(repr(prompt)))
+    #     # Strip off trailing terminator
+    #     self.base_prompt = prompt[0]
+    #
+    #     return self.base_prompt
 
     def check_enable_mode(self, check_string=''):
         self.write_channel(self.RETURN)
@@ -39,8 +39,9 @@ class DlinkBase(BaseConnection):
 
         return pattern.search(output) is not None
 
-    def enable(self, cmd='enable admin', pattern=r'ss[Ww]ord', re_flags=re.IGNORECASE):
-        return super(DlinkBase, self).enable(cmd=cmd, pattern=pattern, re_flags=re_flags)
+    def enable(self, cmd='enable admin', **kwargs):
+        self.base_prompt = "#"
+        return super().enable(cmd=cmd)
 
     def disable_paging(self, command="disable clipaging", delay_factor=1):
         return super(DlinkBase, self).disable_paging(command=command)
