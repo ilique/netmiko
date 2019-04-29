@@ -630,104 +630,19 @@ class BaseConnection(object):
 
     def serial_login(
         self,
-        pri_prompt_terminator=r"#\s*$",
-        alt_prompt_terminator=r">\s*$",
-        username_pattern=r"(?:[Uu]ser:|sername|ogin)",
-        pwd_pattern=r"assword",
-        delay_factor=1,
-        max_loops=20,
     ):
-        self.telnet_login(
-            pri_prompt_terminator,
-            alt_prompt_terminator,
-            username_pattern,
-            pwd_pattern,
-            delay_factor,
-            max_loops,
-        )
+        raise NotImplementedError  # yet
 
     def telnet_login(
         self,
-        pri_prompt_terminator=r"#\s*$",
-        alt_prompt_terminator=r">\s*$",
-        username_pattern=r"(?:user:|username|login|user name)",
-        pwd_pattern=r"assword",
-        delay_factor=1,
-        max_loops=20,
     ):
-        """Telnet login. Can be username/password or just password.
-
-        :param pri_prompt_terminator: Primary trailing delimiter for identifying a device prompt
-        :type pri_prompt_terminator: str
-
-        :param alt_prompt_terminator: Alternate trailing delimiter for identifying a device prompt
-        :type alt_prompt_terminator: str
-
-        :param username_pattern: Pattern used to identify the username prompt
-        :type username_pattern: str
-
-        :param delay_factor: See __init__: global_delay_factor
-        :type delay_factor: int
-
-        :param max_loops: Controls the wait time in conjunction with the delay_factor
-        (default: 20)
+        """Telnet login. It's just sending commands after all.
         """
-        delay_factor = self.select_delay_factor(delay_factor)
-        time.sleep(1 * delay_factor)
-
-        output = ""
-        return_msg = ""
-        i = 1
-        while i <= max_loops:
-            try:
-                output = self.read_channel()
-                return_msg += output
-
-                # Search for username pattern / send username
-                if re.search(username_pattern, output, flags=re.I):
-                    self.write_channel(self.username + self.TELNET_RETURN)
-                    time.sleep(1 * delay_factor)
-                    output = self.read_channel()
-                    return_msg += output
-
-                # Search for password pattern / send password
-                if re.search(pwd_pattern, output, flags=re.I):
-                    self.write_channel(self.password + self.TELNET_RETURN)
-                    time.sleep(0.5 * delay_factor)
-                    output = self.read_channel()
-                    return_msg += output
-                    if re.search(
-                        pri_prompt_terminator, output, flags=re.M
-                    ) or re.search(alt_prompt_terminator, output, flags=re.M):
-                        return return_msg
-
-                # Check if proper data received
-                if re.search(pri_prompt_terminator, output, flags=re.M) or re.search(
-                    alt_prompt_terminator, output, flags=re.M
-                ):
-                    return return_msg
-
-                self.write_channel(self.TELNET_RETURN)
-                time.sleep(0.5 * delay_factor)
-                i += 1
-            except EOFError:
-                self.remote_conn.close()
-                msg = "Login failed: {}".format(self.host)
-                raise NetMikoAuthenticationException(msg)
-
-        # Last try to see if we already logged in
-        self.write_channel(self.TELNET_RETURN)
-        time.sleep(0.5 * delay_factor)
-        output = self.read_channel()
-        return_msg += output
-        if re.search(pri_prompt_terminator, output, flags=re.M) or re.search(
-            alt_prompt_terminator, output, flags=re.M
-        ):
-            return return_msg
-
-        msg = "Login failed: {}".format(self.host)
-        self.remote_conn.close()
-        raise NetMikoAuthenticationException(msg)
+        commands = [
+            self.username,
+            self.password,
+        ]
+        return self.send_commands(commands, newline='\r\n')
 
     def _try_session_preparation(self):
         """
@@ -1725,7 +1640,7 @@ class BaseConnection(object):
             self.session_log.close()
             self.session_log = None
 
-    def send_commands(self, commands):
+    def send_commands(self, commands, newline='\r\n'*2):
         if self.protocol == "telnet":
             if commands:
                 commands = deque(commands)
@@ -1733,7 +1648,7 @@ class BaseConnection(object):
                     command = commands.popleft()
                     log.debug("sending command: {} {}".format(command, bytes(command, 'ascii')))
                     select([], [self.remote_conn.sock], [])
-                    self.remote_conn.sock.send(bytes(command + '\r\n'*2, 'ascii'))
+                    self.remote_conn.sock.send(bytes(command + newline, 'ascii'))
                 return True
             return False
         else:
