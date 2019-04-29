@@ -30,7 +30,8 @@ from netmiko.ssh_exception import (
     NetMikoAuthenticationException,
 )
 from netmiko.utilities import write_bytes, check_serial_port, get_structured_data
-
+from threading import Thread
+from select import select
 
 class BaseConnection(object):
     """
@@ -74,6 +75,7 @@ class BaseConnection(object):
         session_log_file_mode="write",
         allow_auto_change=False,
         encoding="ascii",
+        background_read_timeout=1,
     ):
         """
         Initialize attributes for establishing connection to target device.
@@ -228,6 +230,7 @@ class BaseConnection(object):
         self.keepalive = keepalive
         self.allow_auto_change = allow_auto_change
         self.encoding = encoding
+        self.output = ''
 
         # Netmiko will close the session_log if we open the file
         self.session_log = None
@@ -311,6 +314,21 @@ class BaseConnection(object):
             self._modify_connection_params()
             self.establish_connection()
             self._try_session_preparation()
+
+        self.background_read_timeout = background_read_timeout
+        t = Thread(target=self.background_read)
+        t.start()
+
+    def background_read(self):
+        # TODO: handle the EOFError: telnet connection closed
+        # TODO: start/stop thread methods
+        if self.protocol == 'telnet':
+            while True:
+                select([self.remote_conn.sock], [], [])
+                self.output += self.read_channel()
+                time.sleep(self.background_read_timeout)
+        else:
+            raise NotImplementedError
 
     def __enter__(self):
         """Establish a session using a Context Manager."""
@@ -1706,6 +1724,23 @@ class BaseConnection(object):
         if self.session_log is not None and self._session_log_close:
             self.session_log.close()
             self.session_log = None
+
+    def send_commands(self, commands):
+        if self.protocol == "telnet":
+            if commands:
+                commands = deque(commands)
+                while commands:
+                    command = commands.popleft()
+                    log.debug("sending command: {} {}".format(command, bytes(command, 'ascii')))
+                    select([], [self.remote_conn.sock], [])
+                    self.remote_conn.sock.send(bytes(command + '\r\n'*2, 'ascii'))
+                return True
+            return False
+        else:
+            raise NotImplementedError
+
+    def get_output(self):
+        return self.output
 
 
 class TelnetConnection(BaseConnection):
