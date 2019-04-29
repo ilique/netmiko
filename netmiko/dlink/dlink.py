@@ -18,8 +18,7 @@ class DlinkBase(BaseConnection):
         pass
 
     def session_preparation(self):
-        self.enable()
-        return super().session_preparation()
+        pass
 
     # def set_base_prompt(self, pri_prompt_terminator='#',
     #                     alt_prompt_terminator='#', delay_factor=1):
@@ -45,13 +44,6 @@ class DlinkBase(BaseConnection):
 
     def disable_paging(self, command="disable clipaging", delay_factor=1):
         return super(DlinkBase, self).disable_paging(command=command)
-
-    def telnet_login(self, pri_prompt_terminator=r'#\s*$', alt_prompt_terminator=r'>\s*$',
-                     username_pattern=r"(?:user:|username|login|user name)",
-                     pwd_pattern=r"assword",
-                     delay_factor=3, max_loops=20):
-        return super(DlinkBase, self).telnet_login(pri_prompt_terminator, alt_prompt_terminator,
-                                                     username_pattern, pwd_pattern, delay_factor, max_loops)
 
 
 class DlinkSSH(DlinkBase):
