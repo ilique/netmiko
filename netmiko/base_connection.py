@@ -321,7 +321,10 @@ class BaseConnection(object):
 
     def background_read(self):
         if self.protocol == 'telnet':
-            while True:
+            tick = int(60/self.background_read_timeout)
+            if not tick > 0:
+                raise Exception("Wrong tick")
+            while tick:
                 try:
                     select([self.remote_conn.sock], [], [])
                     # TODO: catch BrokenPipeError
@@ -329,6 +332,7 @@ class BaseConnection(object):
                     # TODO: sock.recv()
                     self.output += self.read_channel()
                     time.sleep(self.background_read_timeout)
+                    tick -= 1
                 except EOFError:
                     return True
         else:
