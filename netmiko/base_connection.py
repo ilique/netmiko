@@ -76,6 +76,7 @@ class BaseConnection(object):
         allow_auto_change=False,
         encoding="ascii",
         background_read_timeout=1,
+        background_read_tick=60,
         output_path="pushkin-netmiko-logs",
     ):
         """
@@ -317,21 +318,21 @@ class BaseConnection(object):
             self._try_session_preparation()
 
         self.background_read_timeout = background_read_timeout
+        self.background_read_tick = background_read_tick
         self.output_path = output_path
 
     def background_read(self):
         if self.protocol == 'telnet':
-            tick = int(60/self.background_read_timeout)
-            if not tick > 0:
-                raise Exception("Wrong tick")
+            tick = self.background_read_tick
             while tick:
                 try:
-                    select([self.remote_conn.sock], [], [])
                     # TODO: catch BrokenPipeError
                     # TODO: catch ConnectionResetError
                     # TODO: sock.recv()
-                    self.output += self.read_channel()
-                    time.sleep(self.background_read_timeout)
+                    r, w, x = select([self.remote_conn.sock], [], [], 1.0)
+                    if r:
+                        out = self.remote_conn.sock.recv(1024)
+                        self.output += out.decode('utf8', 'replace')
                     tick -= 1
                 except EOFError:
                     return True
