@@ -76,6 +76,7 @@ class BaseConnection(object):
         allow_auto_change=False,
         encoding="ascii",
         background_read_timeout=1,
+        output_path="pushkin-netmiko-logs",
     ):
         """
         Initialize attributes for establishing connection to target device.
@@ -316,19 +317,41 @@ class BaseConnection(object):
             self._try_session_preparation()
 
         self.background_read_timeout = background_read_timeout
-        t = Thread(target=self.background_read)
-        t.start()
+        self.output_path = output_path
 
     def background_read(self):
-        # TODO: handle the EOFError: telnet connection closed
-        # TODO: start/stop thread methods
         if self.protocol == 'telnet':
             while True:
-                select([self.remote_conn.sock], [], [])
-                self.output += self.read_channel()
-                time.sleep(self.background_read_timeout)
+                try:
+                    select([self.remote_conn.sock], [], [])
+                    # TODO: catch BrokenPipeError
+                    # TODO: catch ConnectionResetError
+                    # TODO: sock.recv()
+                    self.output += self.read_channel()
+                    time.sleep(self.background_read_timeout)
+                except EOFError:
+                    return True
         else:
             raise NotImplementedError
+
+    def log_output(self):
+        logged = ''
+        t = Thread(target=self.background_read)
+        name = t.getName()
+        t.setName("Thread-{} [{}]".format(name, self.ip))
+        t.start()
+        with open("{}/device_{}.log".format(self.output_path, self.ip), 'a') as f:
+            print(f)
+            print("this is log for {}".format(self.ip))
+            f.write("this is log for {}".format(self.ip))
+            while t.is_alive():
+                out = self.output.strip()
+                if out and logged != out:
+                    f.write(out)
+                    logged = out
+                time.sleep(self.background_read_timeout)
+        # end via ^C
+        # TODO: end via message/is_alive
 
     def __enter__(self):
         """Establish a session using a Context Manager."""
