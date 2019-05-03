@@ -1168,6 +1168,28 @@ class BaseConnection(object):
         """
         return self.send_command(*args, **kwargs)
 
+    def send_commands(self, commands, newline='\n', timeout=1):
+        if self.protocol == "telnet":
+            if commands:
+                commands = deque(commands)
+                while commands:
+                    command = commands.popleft()
+                    log.debug("sending command: {} {}".format(command, bytes(command, 'ascii')))
+                    r, w, x = select([], [self.remote_conn.sock], [], float(timeout))
+                    if w:
+                        self.remote_conn.sock.send(bytes(command + newline, 'ascii'))
+                    else:
+                        commands.appendleft(command)
+                return True
+            return False
+        else:
+            raise NotImplementedError
+
+    def get_output(self):
+        out = self.output
+        self.output = ''
+        return out
+
     @staticmethod
     def strip_backspaces(output):
         """Strip any backspace characters out of the output.
@@ -1554,26 +1576,6 @@ class BaseConnection(object):
         if self.session_log is not None and self._session_log_close:
             self.session_log.close()
             self.session_log = None
-
-    def send_commands(self, commands, newline='\n', timeout=1):
-        if self.protocol == "telnet":
-            if commands:
-                commands = deque(commands)
-                while commands:
-                    command = commands.popleft()
-                    log.debug("sending command: {} {}".format(command, bytes(command, 'ascii')))
-                    r, w, x = select([], [self.remote_conn.sock], [], float(timeout))
-                    if w:
-                        self.remote_conn.sock.send(bytes(command + newline, 'ascii'))
-                    else:
-                        commands.appendleft(command)
-                return True
-            return False
-        else:
-            raise NotImplementedError
-
-    def get_output(self):
-        return self.output
 
 
 class TelnetConnection(BaseConnection):
