@@ -76,7 +76,7 @@ class BaseConnection(object):
         allow_auto_change=False,
         encoding="ascii",
         background_read_timeout=5,
-        background_read_tick=20,  # background_read thread lifetime >= tick * background_read_timeout (sec)
+        background_read_tick=10,  # background_read thread lifetime >= tick * background_read_timeout (sec)
         output_path="pushkin-netmiko-logs",
     ):
         """
@@ -172,6 +172,12 @@ class BaseConnection(object):
         self.base_prompt = ""
         self._session_locker = Lock()
 
+        self.background_read_thread = None
+        self.background_read_thread_lock = Lock()
+        self.background_read_timeout = background_read_timeout
+        self.background_read_tick = background_read_tick
+        self.output_path = output_path
+
         # determine if telnet or SSH
         if "_telnet" in device_type:
             self.protocol = "telnet"
@@ -208,10 +214,6 @@ class BaseConnection(object):
             self.establish_connection()
             self._try_session_preparation()
 
-        self.background_read_timeout = background_read_timeout
-        self.background_read_tick = background_read_tick
-        self.output_path = output_path
-
     def background_read(self):
         if self.protocol == 'telnet':
             tick = self.background_read_tick
@@ -220,7 +222,8 @@ class BaseConnection(object):
                     r, w, x = select([self.remote_conn.sock], [], [], float(self.background_read_timeout))
                     if r:
                         out = self.remote_conn.sock.recv(1024)
-                        self.output += out.decode('utf8', 'replace')
+                        with self.background_read_thread_lock:
+                            self.output += out.decode('utf8', 'replace')
                         time.sleep(self.background_read_timeout)
                     tick -= 1
                 except (EOFError, ConnectionResetError, BrokenPipeError):
@@ -228,23 +231,20 @@ class BaseConnection(object):
         else:
             raise NotImplementedError
 
-    def log_output(self):
-        logged = ''
+    def run_background_read_thread(self):
         t = Thread(target=self.background_read)
         name = t.getName()
         t.setName("{} [{}]".format(name, self.ip))
         t.start()
-        with open("{}/device_{}.log".format(self.output_path, self.ip), 'a') as f:
-            print(f)
-            print("this is log for {}".format(self.ip))
+        self.background_read_thread = t
+
+    def log_output(self):
+        with open("{}/{}".format(self.output_path, self.ip), 'w') as f:
             f.write("this is log for {}".format(self.ip))
-            while t.is_alive():
-                # TODO: use self.get_output()
-                # TODO: use threading.Lock()
-                out = self.output.strip()
-                if out and logged != out:
-                    f.write(out)
-                    logged = out
+            while self.background_read_thread.is_alive():
+                output = self.get_output()
+                if output:
+                    f.write(output)
                 time.sleep(self.background_read_timeout)
 
     def __enter__(self):
@@ -559,6 +559,7 @@ class BaseConnection(object):
             self.username,
             self.password,
         ]
+        self.run_background_read_thread()
         return self.send_commands(commands)
 
     def _try_session_preparation(self):
@@ -1188,8 +1189,9 @@ class BaseConnection(object):
             raise NotImplementedError
 
     def get_output(self):
-        out = self.output
-        self.output = ''
+        with self.background_read_thread_lock:
+            out = self.output
+            self.output = ''
         return out
 
     @staticmethod
