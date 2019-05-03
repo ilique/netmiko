@@ -239,6 +239,8 @@ class BaseConnection(object):
             print("this is log for {}".format(self.ip))
             f.write("this is log for {}".format(self.ip))
             while t.is_alive():
+                # TODO: use self.get_output()
+                # TODO: use threading.Lock()
                 out = self.output.strip()
                 if out and logged != out:
                     f.write(out)
