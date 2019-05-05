@@ -75,6 +75,7 @@ class BaseConnection(object):
         session_log_file_mode="write",
         allow_auto_change=False,
         encoding="ascii",
+        # TODO: float timeout
         background_read_timeout=5,
         background_read_tick=10,  # background_read thread lifetime >= tick * background_read_timeout (sec)
         output_path="pushkin-netmiko-logs",
@@ -224,6 +225,7 @@ class BaseConnection(object):
                         out = self.remote_conn.sock.recv(1024)
                         with self.background_read_thread_lock:
                             self.output += out.decode('utf8', 'replace')
+                        # TODO: try not sleep
                         time.sleep(self.background_read_timeout)
                     tick -= 1
                 except (EOFError, ConnectionResetError, BrokenPipeError):
@@ -1172,6 +1174,7 @@ class BaseConnection(object):
         return self.send_command(*args, **kwargs)
 
     def send_commands(self, commands, newline='\n', timeout=1):
+        # TODO: try selectors module
         if self.protocol == "telnet":
             if commands:
                 commands = deque(commands)
