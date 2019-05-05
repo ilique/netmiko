@@ -79,6 +79,7 @@ class BaseConnection(object):
         background_read_timeout=5,
         background_read_tick=10,  # background_read thread lifetime >= tick * background_read_timeout (sec)
         output_path="pushkin-netmiko-logs",
+        send_command_timeout=0.0,
     ):
         """
         Initialize attributes for establishing connection to target device.
@@ -178,6 +179,7 @@ class BaseConnection(object):
         self.background_read_timeout = background_read_timeout
         self.background_read_tick = background_read_tick
         self.output_path = output_path
+        self.send_command_timeout = send_command_timeout
 
         # determine if telnet or SSH
         if "_telnet" in device_type:
@@ -1186,6 +1188,8 @@ class BaseConnection(object):
                         self.remote_conn.sock.send(bytes(command + newline, 'ascii'))
                     else:
                         commands.appendleft(command)
+                    if self.send_command_timeout:
+                        time.sleep(self.send_command_timeout)
                 return True
             return False
         else:
